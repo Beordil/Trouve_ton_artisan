@@ -1,55 +1,90 @@
 import React, { useEffect, useState } from "react";
+import "./App.css";
 
 function App() {
   const [artisans, setArtisans] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [erreur, setErreur] = useState(null);
 
   useEffect(() => {
-    async function fetchArtisans() {
-      try {
-        const response = await fetch("http://localhost:3001/artisans");
+    // Appel à ton backend
+    fetch("http://localhost:3001/artisans")
+      .then((response) => {
         if (!response.ok) {
-          throw new Error("Réponse serveur non valide");
+          throw new Error("Erreur lors du chargement des artisans");
         }
-        const data = await response.json();
-        console.log("✅ Données reçues depuis l'API :", data);
+        return response.json();
+      })
+      .then((data) => {
         setArtisans(data);
-      } catch (err) {
-        console.error("❌ Erreur API :", err);
-        setError(err.message);
-      } finally {
         setLoading(false);
-      }
-    }
-
-    fetchArtisans();
+      })
+      .catch((err) => {
+        console.error(err);
+        setErreur("Impossible de charger les artisans");
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
-    return <p>Chargement des artisans...</p>;
+    return (
+      <div className="App">
+        <p>Chargement des artisans...</p>
+      </div>
+    );
   }
 
-  if (error) {
-    return <p>Erreur : {error}</p>;
+  if (erreur) {
+    return (
+      <div className="App">
+        <p>{erreur}</p>
+      </div>
+    );
   }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Liste des artisans</h1>
+    <div className="App">
+      <header>
+        <h1>TROUVE TON ARTISAN</h1>
+        <p>Liste des artisans (test de connexion API)</p>
+      </header>
 
-      {artisans.length === 0 ? (
-        <p>Aucun artisan trouvé.</p>
-      ) : (
-        <ul>
-          {artisans.map((artisan) => (
-            <li key={artisan.id_artisan}>
-              <strong>{artisan.nom}</strong> — {artisan.specialite} (
-              {artisan.categorie}) — {artisan.localisation}
-            </li>
-          ))}
-        </ul>
-      )}
+      <main>
+        {artisans.length === 0 ? (
+          <p>Aucun artisan trouvé.</p>
+        ) : (
+          <ul className="artisan-list">
+            {artisans.map((artisan) => (
+              <li key={artisan.id_artisan} className="artisan-card">
+                <h2>{artisan.nom}</h2>
+                <p>
+                  <strong>Catégorie :</strong> {artisan.categorie} <br />
+                  <strong>Spécialité :</strong> {artisan.specialite}
+                </p>
+                <p>
+                  <strong>Localisation :</strong> {artisan.localisation}
+                </p>
+                {artisan.note && (
+                  <p>
+                    <strong>Note :</strong> {artisan.note} / 5
+                  </p>
+                )}
+                {artisan.site_web && (
+                  <p>
+                    <a
+                      href={artisan.site_web}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Voir le site web
+                    </a>
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
     </div>
   );
 }
