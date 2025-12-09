@@ -34,7 +34,11 @@ app.get("/", (req, res) => {
   res.send("API TROUVE_TON_ARTISAN OK");
 });
 
-// ✅ 1) Toutes les catégories
+/* =========================================================
+   CATEGORIES
+   ========================================================= */
+
+// ✅ Toutes les catégories
 app.get("/categories", (req, res) => {
   const sql = "SELECT * FROM categorie";
 
@@ -47,7 +51,11 @@ app.get("/categories", (req, res) => {
   });
 });
 
-// ✅ 2) Tous les artisans (avec spécialité + catégorie)
+/* =========================================================
+   ARTISANS
+   ========================================================= */
+
+// ✅ Tous les artisans (avec spécialité + catégorie)
 app.get("/artisans", (req, res) => {
   const sql = `
     SELECT 
@@ -75,7 +83,7 @@ app.get("/artisans", (req, res) => {
   });
 });
 
-// ✅ 3) Artisans par catégorie (ex: /artisans/categorie/Alimentation)
+// ✅ Artisans par catégorie (ex: /artisans/categorie/Alimentation)
 app.get("/artisans/categorie/:categorie", (req, res) => {
   const categorie = req.params.categorie;
 
@@ -106,7 +114,55 @@ app.get("/artisans/categorie/:categorie", (req, res) => {
   });
 });
 
-// ✅ 4) Détail d’un artisan (ex: /artisans/1)
+/* =========================================================
+   RECHERCHE ARTISANS PAR NOM
+   ========================================================= */
+
+// ⚠️ IMPORTANT : cette route est AVANT /artisans/:id
+// ✅ Recherche par nom d’artisan : /artisans/recherche?q=mont
+app.get("/artisans/recherche", (req, res) => {
+  const q = (req.query.q || "").trim();
+
+  // Si la chaîne est vide → renvoyer un tableau vide
+  if (!q) {
+    return res.json([]);
+  }
+
+  const like = `%${q}%`;
+
+  const sql = `
+    SELECT 
+      artisan.id_artisan,
+      artisan.nom,
+      artisan.note,
+      artisan.localisation,
+      artisan.email_contact,
+      artisan.site_web,
+      artisan.description,
+      artisan.image_url,
+      specialite.nom AS specialite,
+      categorie.nom AS categorie
+    FROM artisan
+    JOIN specialite ON artisan.id_specialite = specialite.id_specialite
+    JOIN categorie ON specialite.id_categorie = categorie.id_categorie
+    WHERE artisan.nom LIKE ?
+    ORDER BY artisan.nom ASC
+  `;
+
+  db.query(sql, [like], (err, results) => {
+    if (err) {
+      console.error("❌ Erreur /artisans/recherche :", err);
+      return res.status(500).json({ erreur: "Erreur serveur" });
+    }
+    res.json(results);
+  });
+});
+
+/* =========================================================
+   DETAIL ARTISAN
+   ========================================================= */
+
+// ✅ Détail d’un artisan (ex: /artisans/1)
 app.get("/artisans/:id", (req, res) => {
   const id = req.params.id;
 
@@ -142,13 +198,23 @@ app.get("/artisans/:id", (req, res) => {
   });
 });
 
-// ✅ 5) Formulaire de contact (POST /contact)
-app.post("/contact", (req, res) => {
-  const { nom, email, objet, message, id_artisan } = req.body;
+/* =========================================================
+   CONTACT
+   ========================================================= */
 
-  if (!id_artisan || !message) {
-    return res.status(400).json({ erreur: "Champs manquants" });
+// ✅ Formulaire de contact (POST /contact)
+app.post("/contact", (req, res) => {
+  let { nom, email, objet, message, id_artisan } = req.body;
+
+  if (!id_artisan || !message || typeof message !== "string") {
+    return res.status(400).json({ erreur: "Champs obligatoires manquants" });
   }
+
+  // petites sécurités : tronquer les champs trop longs
+  nom = nom ? String(nom).slice(0, 150) : null;
+  email = email ? String(email).slice(0, 150) : null;
+  objet = objet ? String(objet).slice(0, 150) : null;
+  message = String(message).slice(0, 2000);
 
   const sql = `
     INSERT INTO message_contact (nom, email, objet, message, id_artisan)
