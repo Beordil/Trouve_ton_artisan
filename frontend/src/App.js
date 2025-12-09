@@ -10,6 +10,10 @@ import {
 } from "react-router-dom";
 import "./App.css";
 
+/* ========= CONFIG API ========= */
+
+const API_BASE_URL = "http://localhost:3001/api";
+
 /* ========= CONFIG CATEGORIES ========= */
 
 const CATEGORY_CONFIG = {
@@ -31,7 +35,8 @@ const CATEGORY_CONFIG = {
   fabrication: {
     label: "Fabrication",
     apiLabel: "Fabrication",
-    description: "Les artisans de fabrication : ferronnier, bijoutier, couturier…",
+    description:
+      "Les artisans de fabrication : ferronnier, bijoutier, couturier…",
   },
 };
 
@@ -166,17 +171,14 @@ function SiteFooter() {
 function Home() {
   const navigate = useNavigate();
 
-  // tous les artisans (pour la droite + les menus déroulants)
   const [allArtisans, setAllArtisans] = useState([]);
-  // artisans du mois (colonne de droite)
   const [featuredArtisans, setFeaturedArtisans] = useState([]);
 
-  // états des menus déroulants
   const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
   const [selectedArtisanId, setSelectedArtisanId] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:3001/artisans")
+    fetch(`${API_BASE_URL}/artisans`)
       .then((res) => res.json())
       .then((data) => {
         setAllArtisans(data);
@@ -185,7 +187,6 @@ function Home() {
       .catch((err) => console.error(err));
   }, []);
 
-  // liste des catégories à afficher dans le select
   const categoryOptions = Object.entries(CATEGORY_CONFIG).map(
     ([slug, cfg]) => ({
       slug,
@@ -193,7 +194,6 @@ function Home() {
     })
   );
 
-  // artisans filtrés par catégorie sélectionnée
   const artisansForSelectedCategory = allArtisans.filter(
     (a) => slugFromCategorie(a.categorie) === selectedCategorySlug
   );
@@ -201,7 +201,7 @@ function Home() {
   const handleCategoryChange = (e) => {
     const slug = e.target.value;
     setSelectedCategorySlug(slug);
-    setSelectedArtisanId(""); // on reset l’artisan quand la catégorie change
+    setSelectedArtisanId("");
   };
 
   const handleArtisanChange = (e) => {
@@ -276,7 +276,7 @@ function Home() {
                           : "Choisissez d’abord une catégorie"}
                       </option>
                       {artisansForSelectedCategory.map((a) => (
-                        <option key={a.id_artisan} value={a.id_artisan}>
+                        <option key={a._id} value={a._id}>
                           {a.nom} – {a.localisation}
                         </option>
                       ))}
@@ -312,7 +312,7 @@ function Home() {
             <h2>Les artisans du mois</h2>
 
             {featuredArtisans.map((a) => (
-              <div key={a.id_artisan} className="artisan-card">
+              <div key={a._id} className="artisan-card">
                 <strong>{a.nom}</strong>
                 <p>{a.specialite}</p>
                 <p>{a.localisation}</p>
@@ -320,7 +320,7 @@ function Home() {
                   {a.note} / 5 {renderStars(a.note)}
                 </p>
                 <Link
-                  to={`/artisan/${a.id_artisan}`}
+                  to={`/artisan/${a._id}`}
                   className="artisan-card-link-btn"
                 >
                   Voir la fiche
@@ -352,8 +352,9 @@ function CategoryPage() {
     setLoading(true);
     setErreur(null);
 
+    // on utilise le filtre "categorie" déjà prévu dans le backend
     fetch(
-      `http://localhost:3001/artisans/categorie/${encodeURIComponent(
+      `${API_BASE_URL}/artisans?categorie=${encodeURIComponent(
         config.apiLabel
       )}`
     )
@@ -403,7 +404,7 @@ function CategoryPage() {
         {!loading && !erreur && artisans.length > 0 && (
           <div className="category-grid">
             {artisans.map((a) => (
-              <article key={a.id_artisan} className="category-card">
+              <article key={a._id} className="category-card">
                 <h2 className="category-card-name">{a.nom}</h2>
                 <p className="category-card-specialite">{a.specialite}</p>
                 <p className="category-card-ville">{a.localisation}</p>
@@ -414,7 +415,7 @@ function CategoryPage() {
                 )}
 
                 <Link
-                  to={`/artisan/${a.id_artisan}`}
+                  to={`/artisan/${a._id}`}
                   className="category-card-btn"
                 >
                   Contacter cet artisan
@@ -449,7 +450,7 @@ function ArtisanDetailPage() {
     setLoading(true);
     setErreur(null);
 
-    fetch(`http://localhost:3001/artisans/${id}`)
+    fetch(`${API_BASE_URL}/artisans/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Erreur lors du chargement de l'artisan");
         return res.json();
@@ -485,7 +486,8 @@ function ArtisanDetailPage() {
 
     setSending(true);
 
-    fetch("http://localhost:3001/contact", {
+    // TODO : route backend à créer /api/contact
+    fetch(`${API_BASE_URL}/contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -704,16 +706,23 @@ function SearchResultsPage() {
     setLoading(true);
     setErreur(null);
 
-    fetch(
-      `http://localhost:3001/artisans/recherche?q=${encodeURIComponent(q)}`
-    )
+    // pas de route /recherche dans le backend :
+    // on récupère tous les artisans puis on filtre côté front
+    fetch(`${API_BASE_URL}/artisans`)
       .then((res) => {
         if (!res.ok)
           throw new Error("Erreur lors du chargement des résultats");
         return res.json();
       })
       .then((data) => {
-        setResults(data);
+        const qLower = q.toLowerCase();
+        const filtered = data.filter((a) =>
+          [a.nom, a.specialite, a.categorie, a.localisation].some(
+            (field) =>
+              field && field.toLowerCase().includes(qLower)
+          )
+        );
+        setResults(filtered);
         setLoading(false);
       })
       .catch((err) => {
@@ -753,7 +762,7 @@ function SearchResultsPage() {
         {!loading && !erreur && results.length > 0 && (
           <div className="category-grid">
             {results.map((a) => (
-              <article key={a.id_artisan} className="category-card">
+              <article key={a._id} className="category-card">
                 <h2 className="category-card-name">{a.nom}</h2>
                 <p className="category-card-specialite">{a.specialite}</p>
                 <p className="category-card-ville">{a.localisation}</p>
@@ -764,7 +773,7 @@ function SearchResultsPage() {
                 )}
 
                 <Link
-                  to={`/artisan/${a.id_artisan}`}
+                  to={`/artisan/${a._id}`}
                   className="category-card-btn"
                 >
                   Voir la fiche

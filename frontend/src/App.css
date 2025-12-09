@@ -1,12 +1,36 @@
 /* =========================================================
+   FONTS / GLOBAL FONT SETUP
+   Déclaration de la police Graphik + fallback system
+   Graphik font declaration + system fallback
+   ========================================================= */
+
+@font-face {
+  font-family: "Graphik";
+  src: url("./assets/GraphikCompact-Regular-Trial.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Graphik";
+  src: url("./assets/GraphikCompact-Semibold-Trial.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* =========================================================
    GLOBAL
+   Style de base pour toute l'application
+   Base styling for the whole application
    ========================================================= */
 
 html,
 body {
   margin: 0;
   height: 100%;
-  font-family: system-ui, sans-serif;
+  /* Police principale du site : Graphik, avec fallback */
+  /* Main site font: Graphik, with system fallback */
+  font-family: "Graphik", system-ui, sans-serif;
 }
 
 .App {
@@ -18,6 +42,8 @@ body {
 
 /* =========================================================
    HEADER
+   En-tête avec logo, navigation et barre de recherche
+   Header with logo, navigation and search bar
    ========================================================= */
 
 .main-header {
@@ -35,6 +61,8 @@ body {
   gap: 24px;
 }
 
+/* Logo cliquable qui renvoie à l'accueil */
+/* Clickable logo linking back to home */
 .logo-link {
   display: flex;
   align-items: center;
@@ -46,13 +74,18 @@ body {
   object-fit: contain;
 }
 
-/* NAV */
+/* NAV
+   Barre de navigation des catégories principales
+   Main category navigation bar
+*/
 
 .category-nav {
   display: flex;
   gap: 10px;
 }
 
+/* Boutons de catégorie en forme de “pilule” */
+/* Pill-shaped category buttons */
 .category-link {
   padding: 8px 18px;
   border-radius: 14px;
@@ -71,7 +104,10 @@ body {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* RECHERCHE */
+/* RECHERCHE
+   Barre de recherche dans le header
+   Search bar in the header
+*/
 
 .search-box {
   display: flex;
@@ -110,6 +146,8 @@ body {
 
 /* =========================================================
    MAIN
+   Conteneur principal des pages
+   Main content container
    ========================================================= */
 
 .main-content {
@@ -120,6 +158,8 @@ body {
 
 /* =========================================================
    HOME
+   Page d'accueil (bloc gauche + artisans du mois à droite)
+   Home page (left block + artisans of the month on the right)
    ========================================================= */
 
 .home-section {
@@ -136,12 +176,16 @@ body {
   padding: 0 32px;
 }
 
+/* Grille 2 colonnes : texte / artisans du mois */
+/* Two-column grid: text / featured artisans */
 .home-grid {
   display: grid;
   grid-template-columns: 2fr 1.1fr;
   gap: 40px;
 }
 
+/* Bloc explicatif de gauche */
+/* Left explanatory panel */
 .home-left {
   background: #f1f8fc;
   padding: 48px;
@@ -158,6 +202,8 @@ body {
   margin-bottom: 10px;
 }
 
+/* Bouton principal “Voir tous les artisans” */
+/* Primary button “See all artisans” */
 .primary-btn {
   display: inline-block;
   background: #0074c7;
@@ -169,7 +215,8 @@ body {
   border: none;
 }
 
-/* Étapes */
+/* Étapes : 1 / 2 / 3 pour guider l’utilisateur */
+/* Steps: 1 / 2 / 3 to guide the user */
 
 .steps {
   display: flex;
@@ -185,6 +232,8 @@ body {
   align-items: start;
 }
 
+/* Pastille numérotée */
+/* Numbered bullet */
 .steps span {
   background: #0074c7;
   color: white;
@@ -211,7 +260,10 @@ body {
   font-size: 0.95rem;
 }
 
-/* HOME DROITE */
+/* HOME DROITE
+   Bloc “Les artisans du mois”
+   Right column “Artisans of the month”
+*/
 
 .home-right {
   background: #384050;
@@ -224,8 +276,8 @@ body {
   margin-top: 0;
 }
 
-/* Carte artisan dans le bloc de droite */
-
+/* Carte artisan affichée dans la colonne de droite */
+/* Artisan card displayed in the right column */
 .artisan-card {
   background: white;
   color: #384050;
@@ -234,6 +286,8 @@ body {
   margin-top: 12px;
 }
 
+/* Bouton vers la fiche de l'artisan */
+/* Button linking to artisan detail page */
 .artisan-card-link-btn {
   display: inline-block;
   margin-top: 8px;
@@ -252,6 +306,8 @@ body {
 
 /* =========================================================
    PAGE CATEGORIE & RECHERCHE
+   Liste des artisans par catégorie ou par mot-clé
+   List of artisans by category or search keyword
    ========================================================= */
 
 .category-section {
@@ -268,8 +324,8 @@ body {
   padding: 0 32px;
 }
 
-/* Titre ----- Bâtiment ----- */
-
+/* Titre ----- Bâtiment ----- avec lignes horizontales */
+/* Title ----- Bâtiment ----- with horizontal lines */
 .category-title {
   display: flex;
   align-items: center;
@@ -298,8 +354,8 @@ body {
   color: #555;
 }
 
-/* Grille de cartes */
-
+/* Grille adaptative de cartes artisans */
+/* Responsive grid of artisan cards */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -334,6 +390,8 @@ body {
   margin: 6px 0;
 }
 
+/* Bouton d'accès à la fiche artisan */
+/* Button to open artisan profile */
 .category-card-btn {
   display: inline-block;
   margin-top: 10px;
@@ -349,18 +407,22 @@ body {
   background-color: #00497c;
 }
 
+/* Texte d'erreur en cas de problème API */
+/* Error text if API fails */
 .category-error {
   color: #c0392b;
 }
 
-/* Highlight de la recherche */
-
+/* Mise en surbrillance de la requête de recherche */
+/* Highlight for the search query */
 .search-query-highlight {
   font-weight: 600;
 }
 
 /* =========================================================
    FICHE ARTISAN + CONTACT + MAP
+   Page détail de l'artisan, formulaire et carte
+   Artisan detail page, contact form and map
    ========================================================= */
 
 .artisan-section {
@@ -377,6 +439,8 @@ body {
   padding: 0 32px;
 }
 
+/* Grille avec fiche à gauche et formulaire à droite */
+/* Grid layout: info on the left, contact form on the right */
 .artisan-grid {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -400,6 +464,8 @@ body {
   color: #555;
 }
 
+/* Lien vers le site web de l'artisan */
+/* Link to artisan's website */
 .artisan-site-link {
   display: inline-block;
   margin-top: 10px;
@@ -411,8 +477,8 @@ body {
   text-decoration: underline;
 }
 
-/* Bloc carte */
-
+/* Bloc carte Google Maps */
+/* Google Maps block */
 .artisan-map-block {
   margin-top: 18px;
 }
@@ -440,8 +506,8 @@ body {
   margin-top: 14px;
 }
 
-/* Formulaire */
-
+/* Carte de droite : formulaire de contact */
+/* Right-hand card: contact form */
 .artisan-contact-card {
   background-color: #ffffff;
   border-radius: 14px;
@@ -454,6 +520,8 @@ body {
   color: #555;
 }
 
+/* Groupes de champs du formulaire */
+/* Form field groups */
 .form-group {
   margin-bottom: 14px;
   display: flex;
@@ -478,10 +546,14 @@ body {
   resize: vertical;
 }
 
+/* Astérisque obligatoire */
+/* Required field asterisk */
 .required {
   color: #c0392b;
 }
 
+/* Message d'erreur du formulaire */
+/* Error message for the form */
 .form-error {
   background-color: #fcebea;
   color: #c0392b;
@@ -491,6 +563,8 @@ body {
   margin-bottom: 12px;
 }
 
+/* Message de succès du formulaire */
+/* Success message for the form */
 .form-success {
   background-color: #e6f8e8;
   color: #1e7e34;
@@ -502,6 +576,8 @@ body {
 
 /* =========================================================
    FOOTER
+   Pied de page : coordonnées + liens légaux
+   Footer: contact info + legal links
    ========================================================= */
 
 .site-footer {
@@ -519,6 +595,8 @@ body {
   gap: 16px;
 }
 
+/* Liens centrés dans le footer */
+/* Centered footer links */
 .footer-links-centered {
   display: flex;
   justify-content: center;
@@ -533,6 +611,8 @@ body {
 
 /* =========================================================
    STARS
+   Affichage des étoiles de notation
+   Rating stars display
    ========================================================= */
 
 .stars {
@@ -541,9 +621,12 @@ body {
 
 /* =========================================================
    RESPONSIVE
+   Adaptation tablette et mobile
+   Responsive layout: tablet & mobile
    ========================================================= */
 
 /* Tablette / petit écran */
+/* Tablet / small screens */
 @media (max-width: 992px) {
   .header-inner {
     padding: 0 20px;
@@ -585,6 +668,7 @@ body {
 }
 
 /* Mobile (iPhone, < 600px) */
+/* Mobile layout */
 @media (max-width: 600px) {
   .main-header {
     padding: 16px 0;
@@ -680,10 +764,18 @@ body {
     justify-content: center;
   }
 }
+
+/* =========================================================
+   CONTROLES DES ÉTAPES (SELECT + BOUTON)
+   Controls for the steps (select + button)
+   ========================================================= */
+
 .steps-controls {
   margin-top: 8px;
 }
 
+/* Selects utilisés dans les étapes de la home */
+/* Select inputs used in home steps */
 .steps-select {
   width: 100%;
   max-width: 260px;
@@ -699,6 +791,8 @@ body {
   color: #999;
 }
 
+/* Bouton “Contacter cet artisan” dans les étapes */
+/* “Contact this artisan” button in the steps */
 .steps-button {
   padding: 8px 18px;
   border-radius: 999px;

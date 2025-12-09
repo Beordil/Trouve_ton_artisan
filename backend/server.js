@@ -1,236 +1,152 @@
+// ===============================
+// Import des dépendances principales
+// ===============================
+
 const express = require("express");
 const cors = require("cors");
-const mysql = require("mysql2");
-require("dotenv").config();
+const mongoose = require("mongoose");
+const path = require("path");
+
+// ===============================
+// Chargement des variables d'environnement (.env)
+// ===============================
+
+// On force dotenv à utiliser le fichier .env situé dans le dossier backend
+// Force dotenv to use the .env file in the backend folder
+require("dotenv").config({
+  path: path.join(__dirname, ".env"),
+});
+
+// Petit log de debug pour vérifier que MONGO_URI est bien lue
+// Small debug log to check that MONGO_URI is loaded
+console.log("DEBUG MONGO_URI =", process.env.MONGO_URI);
+
+// ===============================
+// Initialisation de l'application
+// ===============================
 
 const app = express();
 
-// Port (prend la variable d'environnement si elle existe, sinon 3001)
-const PORT = process.env.PORT || 3001;
+app.use(
+  cors({
+    origin: "*", // CORS ouvert (ok pour un projet pédagogique)
+  })
+);
 
-// Middlewares
-app.use(cors());
 app.use(express.json());
 
-// Connexion MySQL
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "trouve_ton_artisan",
+// Port dynamique (Render / Railway) ou 3001 en local
+const PORT = process.env.PORT || 3001;
+
+// ===============================
+// Connexion à MongoDB Atlas
+// ===============================
+
+// On récupère l'URI MongoDB depuis les variables d'environnement
+const MONGO_URI = process.env.MONGO_URI;
+
+// Sécurité : on vérifie que MONGO_URI existe bien
+if (!MONGO_URI) {
+  console.error("❌ MONGO_URI non définie dans les variables d'environnement");
+  process.exit(1);
+}
+
+// Connexion à MongoDB
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log("✅ Connecté à MongoDB Atlas"))
+  .catch((err) => {
+    console.error("❌ Erreur MongoDB :", err);
+    process.exit(1);
+  });
+
+// ===============================
+// Schéma et modèle Artisan
+// ===============================
+
+const artisanSchema = new mongoose.Schema({
+  nom: String,
+  specialite: String,
+  categorie: String,
+  localisation: String,
+  note: Number,
+  description: String,
+  email_contact: String,
+  site_web: String,
+  top: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("❌ Erreur MySQL :", err.message);
-    process.exit(1); // on arrête le serveur si la BDD ne répond pas
-  } else {
-    console.log("✅ Connecté à la base MySQL");
-  }
-});
+const Artisan = mongoose.model("Artisan", artisanSchema);
 
-// ✅ Route de test (pour vérifier que l’API répond)
+// ===============================
+// Routes API
+// ===============================
+
+// Route de test
 app.get("/", (req, res) => {
-  res.send("API TROUVE_TON_ARTISAN OK");
+  res.send("✅ API TROUVE TON ARTISAN - Backend opérationnel");
 });
 
-/* =========================================================
-   CATEGORIES
-   ========================================================= */
+// Liste des artisans (avec filtres optionnels)
+app.get("/api/artisans", async (req, res) => {
+  try {
+    const { categorie, localisation } = req.query;
+    const filtre = {};
 
-// ✅ Toutes les catégories
-app.get("/categories", (req, res) => {
-  const sql = "SELECT * FROM categorie";
+    if (categorie) filtre.categorie = categorie;
+    if (localisation) filtre.localisation = localisation;
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error("❌ Erreur /categories :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
-    }
-    res.json(results);
-  });
-});
-
-/* =========================================================
-   ARTISANS
-   ========================================================= */
-
-// ✅ Tous les artisans (avec spécialité + catégorie)
-app.get("/artisans", (req, res) => {
-  const sql = `
-    SELECT 
-      artisan.id_artisan,
-      artisan.nom,
-      artisan.note,
-      artisan.localisation,
-      artisan.email_contact,
-      artisan.site_web,
-      artisan.description,
-      artisan.image_url,
-      specialite.nom AS specialite,
-      categorie.nom AS categorie
-    FROM artisan
-    JOIN specialite ON artisan.id_specialite = specialite.id_specialite
-    JOIN categorie ON specialite.id_categorie = categorie.id_categorie
-  `;
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error("❌ Erreur /artisans :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
-    }
-    res.json(results);
-  });
-});
-
-// ✅ Artisans par catégorie (ex: /artisans/categorie/Alimentation)
-app.get("/artisans/categorie/:categorie", (req, res) => {
-  const categorie = req.params.categorie;
-
-  const sql = `
-    SELECT 
-      artisan.id_artisan,
-      artisan.nom,
-      artisan.note,
-      artisan.localisation,
-      artisan.email_contact,
-      artisan.site_web,
-      artisan.description,
-      artisan.image_url,
-      specialite.nom AS specialite,
-      categorie.nom AS categorie
-    FROM artisan
-    JOIN specialite ON artisan.id_specialite = specialite.id_specialite
-    JOIN categorie ON specialite.id_categorie = categorie.id_categorie
-    WHERE categorie.nom = ?
-  `;
-
-  db.query(sql, [categorie], (err, results) => {
-    if (err) {
-      console.error("❌ Erreur /artisans/categorie :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
-    }
-    res.json(results);
-  });
-});
-
-/* =========================================================
-   RECHERCHE ARTISANS PAR NOM
-   ========================================================= */
-
-// ⚠️ IMPORTANT : cette route est AVANT /artisans/:id
-// ✅ Recherche par nom d’artisan : /artisans/recherche?q=mont
-app.get("/artisans/recherche", (req, res) => {
-  const q = (req.query.q || "").trim();
-
-  // Si la chaîne est vide → renvoyer un tableau vide
-  if (!q) {
-    return res.json([]);
+    const artisans = await Artisan.find(filtre);
+    res.json(artisans);
+  } catch (err) {
+    console.error("Erreur GET /api/artisans :", err);
+    res.status(500).json({ message: "Erreur serveur" });
   }
-
-  const like = `%${q}%`;
-
-  const sql = `
-    SELECT 
-      artisan.id_artisan,
-      artisan.nom,
-      artisan.note,
-      artisan.localisation,
-      artisan.email_contact,
-      artisan.site_web,
-      artisan.description,
-      artisan.image_url,
-      specialite.nom AS specialite,
-      categorie.nom AS categorie
-    FROM artisan
-    JOIN specialite ON artisan.id_specialite = specialite.id_specialite
-    JOIN categorie ON specialite.id_categorie = categorie.id_categorie
-    WHERE artisan.nom LIKE ?
-    ORDER BY artisan.nom ASC
-  `;
-
-  db.query(sql, [like], (err, results) => {
-    if (err) {
-      console.error("❌ Erreur /artisans/recherche :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
-    }
-    res.json(results);
-  });
 });
 
-/* =========================================================
-   DETAIL ARTISAN
-   ========================================================= */
+// Détail d'un artisan
+app.get("/api/artisans/:id", async (req, res) => {
+  try {
+    const artisan = await Artisan.findById(req.params.id);
 
-// ✅ Détail d’un artisan (ex: /artisans/1)
-app.get("/artisans/:id", (req, res) => {
-  const id = req.params.id;
-
-  const sql = `
-    SELECT 
-      artisan.id_artisan,
-      artisan.nom,
-      artisan.note,
-      artisan.localisation,
-      artisan.email_contact,
-      artisan.site_web,
-      artisan.description,
-      artisan.image_url,
-      specialite.nom AS specialite,
-      categorie.nom AS categorie
-    FROM artisan
-    JOIN specialite ON artisan.id_specialite = specialite.id_specialite
-    JOIN categorie ON specialite.id_categorie = categorie.id_categorie
-    WHERE artisan.id_artisan = ?
-  `;
-
-  db.query(sql, [id], (err, results) => {
-    if (err) {
-      console.error("❌ Erreur /artisans/:id :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
+    if (!artisan) {
+      return res.status(404).json({ message: "Artisan non trouvé" });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({ erreur: "Artisan non trouvé" });
-    }
-
-    res.json(results[0]);
-  });
-});
-
-/* =========================================================
-   CONTACT
-   ========================================================= */
-
-// ✅ Formulaire de contact (POST /contact)
-app.post("/contact", (req, res) => {
-  let { nom, email, objet, message, id_artisan } = req.body;
-
-  if (!id_artisan || !message || typeof message !== "string") {
-    return res.status(400).json({ erreur: "Champs obligatoires manquants" });
+    res.json(artisan);
+  } catch (err) {
+    console.error("Erreur GET /api/artisans/:id :", err);
+    res.status(500).json({ message: "Erreur serveur" });
   }
+});
 
-  // petites sécurités : tronquer les champs trop longs
-  nom = nom ? String(nom).slice(0, 150) : null;
-  email = email ? String(email).slice(0, 150) : null;
-  objet = objet ? String(objet).slice(0, 150) : null;
-  message = String(message).slice(0, 2000);
+// Création d’un artisan (optionnel)
+app.post("/api/artisans", async (req, res) => {
+  try {
+    const artisan = new Artisan(req.body);
+    await artisan.save();
+    res.status(201).json(artisan);
+  } catch (err) {
+    console.error("Erreur POST /api/artisans :", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+});
 
-  const sql = `
-    INSERT INTO message_contact (nom, email, objet, message, id_artisan)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  db.query(sql, [nom, email, objet, message, id_artisan], (err) => {
-    if (err) {
-      console.error("❌ Erreur /contact :", err);
-      return res.status(500).json({ erreur: "Erreur serveur" });
-    }
-    res.json({ message: "✅ Message envoyé" });
+// Simulation formulaire de contact
+app.post("/api/contact", (req, res) => {
+  console.log("📩 Nouveau contact :", req.body);
+  res.json({
+    message: "Message reçu avec succès (simulation côté serveur).",
   });
 });
 
-// 🚀 Lancement du serveur
+// ===============================
+// Lancement du serveur
+// ===============================
+
 app.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`🚀 Backend lancé sur le port ${PORT}`);
 });

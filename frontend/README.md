@@ -1,70 +1,175 @@
-# Getting Started with Create React App
+# 🛠️ TROUVE TON ARTISAN
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🇫🇷 Présentation du projet
 
-## Available Scripts
+**TROUVE TON ARTISAN** est une application web permettant de rechercher et contacter des artisans locaux, classés par catégorie (bâtiment, services, alimentation, fabrication).
 
-In the project directory, you can run:
+Le projet repose sur une architecture **full-stack** moderne :
+- **Frontend** : React
+- **Backend** : Node.js / Express
+- **Base de données** : MongoDB Atlas
 
-### `npm start`
+Les données sont chargées automatiquement depuis un fichier CSV et exploitées via une API REST.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🇬🇧 Project overview
 
-### `npm test`
+**TROUVE TON ARTISAN** is a web application designed to help users find and contact local artisans, categorized by activity (construction, services, food, manufacturing).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The project is built with a modern **full-stack** architecture:
+- **Frontend**: React
+- **Backend**: Node.js / Express
+- **Database**: MongoDB Atlas
 
-### `npm run build`
+Data is automatically imported from a CSV file and exposed through a REST API.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🧱 Architecture du projet
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+TROUVE_TON_ARTISAN
+│
+├── backend
+│ ├── server.js # API Express + MongoDB
+│ ├── import_artisans.js # Script d'import CSV → MongoDB
+│ ├── artisan_import.csv # Données artisans
+│ ├── .env # Variables d’environnement
+│ └── package.json
+│
+├── frontend
+│ ├── public # Fichiers publics
+│ ├── src
+│ │ ├── assets # Images et polices (Graphik)
+│ │ ├── pages # Pages React
+│ │ ├── App.js # Routage et logique principale
+│ │ └── App.css # Styles globaux
+│ └── package.json
+│
+└── README.md
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## ⚙️ Technologies utilisées
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Frontend
+- React (CRA)
+- React Router
+- CSS responsive (Flexbox / Grid)
+- Police locale **Graphik** (via `@font-face`)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Backend
+- Node.js
+- Express
+- Mongoose
+- MongoDB Atlas
+- CORS
+- Dotenv
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 📦 Import des données
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Les artisans sont importés automatiquement depuis un fichier CSV via le script :
 
-### Code Splitting
+```bash
+node import_artisans.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Ce script :
 
-### Analyzing the Bundle Size
+    lit le fichier CSV
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    transforme les données
 
-### Making a Progressive Web App
+    vide la collection existante
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    insère les nouveaux artisans dans MongoDB
 
-### Advanced Configuration
+🔌 API – Principales routes
+Méthode	Route	Description
+GET	/api/artisans	Liste tous les artisans
+GET	/api/artisans?categorie=	Filtrage par catégorie
+GET	/api/artisans/:id	Détails d’un artisan
+POST	/api/contact	Simulation formulaire de contact
+🎨 Design & UX
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    Interface inspirée d’une maquette Figma
 
-### Deployment
+    Police Graphik intégrée localement
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    Design responsive (desktop / tablette / mobile)
 
-### `npm run build` fails to minify
+    Parcours utilisateur simple en 3 étapes :
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+        Choix de la catégorie
+
+        Sélection d’un artisan
+
+        Consultation / contact
+
+🚀 Lancer le projet en local
+Prérequis
+
+    Node.js ≥ 18
+
+    NPM
+
+    Compte MongoDB Atlas
+
+Backend
+
+cd backend
+npm install
+node server.js
+
+Frontend
+
+cd frontend
+npm install
+npm start
+
+Application accessible sur :
+http://localhost:3000
+🔐 Variables d’environnement
+
+Un fichier .env est nécessaire dans le dossier backend :
+
+MONGO_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/trouve_ton_artisan
+
+✅ Fonctionnalités principales
+
+    Affichage des artisans par catégorie
+
+    Fiche artisan détaillée
+
+    Carte de localisation (Google Maps)
+
+    Formulaire de contact simulé
+
+    Gestion des erreurs (404, chargement, API)
+
+🎓 Objectifs pédagogiques
+
+Ce projet permet de valider les compétences suivantes :
+
+    Architecture client / serveur
+
+    Consommation d’API REST
+
+    Gestion d’une base de données NoSQL
+
+    Intégration d’une maquette graphique
+
+    Responsive design
+
+    Organisation d’un projet full-stack
+
+    Documentation technique
+
+👤 Delbart Julien - Beordil
+
+Projet réalisé dans un cadre pédagogique.
+📄 Licence
+
+Projet à usage pédagogique uniquement.

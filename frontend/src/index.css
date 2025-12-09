@@ -1,17 +1,23 @@
 /* =============================
    POLICE LOCALE GRAPHiK
+   Déclaration de la police utilisée dans le projet
+   Local Graphik font declaration
    ============================= */
 
-/* Regular (400) */
+/* Regular (400)
+   Police principale pour le texte courant
+   Main font used for regular text */
 @font-face {
   font-family: "Graphik";
   src: url("./assets/GraphikCompact-Regular-Trial.otf") format("opentype");
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Affiche le texte immédiatement avec fallback */
 }
 
-/* Semibold (600) */
+/* Semibold (600)
+   Utilisée pour les titres et éléments importants
+   Used for headings and highlighted elements */
 @font-face {
   font-family: "Graphik";
   src: url("./assets/GraphikCompact-Semibold-Trial.otf") format("opentype");
@@ -22,28 +28,42 @@
 
 /* =============================
    STYLES GLOBAUX
+   Règles de base applicables à toute l'application
+   Global styles applied to the whole application
    ============================= */
 
+/* Normalisation du box model
+   Prevents layout issues by normalizing box sizing */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
+/* Styles par défaut du document
+   Default document styles */
 html,
 body {
   margin: 0;
   padding: 0;
+
+  /* Police Graphik avec fallback système
+     Graphik font with system fallback */
   font-family: "Graphik", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background-color: #ffffff;
-  color: #384050;
+
+  background-color: #ffffff; /* Fond blanc */
+  color: #384050; /* Couleur principale du texte */
 }
 
+/* Conteneur racine de React
+   React root container */
 #root {
   min-height: 100vh;
 }
 
+/* Amélioration du rendu des polices
+   Improve font rendering on different OS */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

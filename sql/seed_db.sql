@@ -37,7 +37,7 @@ INSERT INTO artisan (
 ('Boucherie Dumont', 4.5, 'Lyon',
  'boucherie.dumond@gmail.com',
  NULL,
- 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus eleifend ante sem, id volutpat massa fermentum nec. Praesent volutpat scelerisque mauris, quis sollicitudin tellus sollicitudin. ',
+ 'Description de l''artisan Boucherie Dumont.',
  NULL,
  1),
 
