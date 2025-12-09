@@ -12,7 +12,7 @@ import "./App.css";
 
 /* ========= CONFIG API ========= */
 
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "https://trouve-ton-artisan-22dy.onrender.com/api";
 
 /* ========= CONFIG CATEGORIES ========= */
 
@@ -352,7 +352,6 @@ function CategoryPage() {
     setLoading(true);
     setErreur(null);
 
-    // on utilise le filtre "categorie" déjà prévu dans le backend
     fetch(
       `${API_BASE_URL}/artisans?categorie=${encodeURIComponent(
         config.apiLabel
@@ -414,10 +413,7 @@ function CategoryPage() {
                   </p>
                 )}
 
-                <Link
-                  to={`/artisan/${a._id}`}
-                  className="category-card-btn"
-                >
+                <Link to={`/artisan/${a._id}`} className="category-card-btn">
                   Contacter cet artisan
                 </Link>
               </article>
@@ -486,7 +482,6 @@ function ArtisanDetailPage() {
 
     setSending(true);
 
-    // TODO : route backend à créer /api/contact
     fetch(`${API_BASE_URL}/contact`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -706,8 +701,6 @@ function SearchResultsPage() {
     setLoading(true);
     setErreur(null);
 
-    // pas de route /recherche dans le backend :
-    // on récupère tous les artisans puis on filtre côté front
     fetch(`${API_BASE_URL}/artisans`)
       .then((res) => {
         if (!res.ok)
@@ -718,8 +711,7 @@ function SearchResultsPage() {
         const qLower = q.toLowerCase();
         const filtered = data.filter((a) =>
           [a.nom, a.specialite, a.categorie, a.localisation].some(
-            (field) =>
-              field && field.toLowerCase().includes(qLower)
+            (field) => field && field.toLowerCase().includes(qLower)
           )
         );
         setResults(filtered);
@@ -772,10 +764,7 @@ function SearchResultsPage() {
                   </p>
                 )}
 
-                <Link
-                  to={`/artisan/${a._id}`}
-                  className="category-card-btn"
-                >
+                <Link to={`/artisan/${a._id}`} className="category-card-btn">
                   Voir la fiche
                 </Link>
               </article>
@@ -791,7 +780,8 @@ function SearchResultsPage() {
 function slugFromCategorie(cat) {
   if (!cat) return "batiment";
   const lower = cat.toLowerCase();
-  if (lower.includes("bâtiment") || lower.includes("batiment")) return "batiment";
+  if (lower.includes("bâtiment") || lower.includes("batiment"))
+    return "batiment";
   if (lower.includes("service")) return "services";
   if (lower.includes("alimentation")) return "alimentation";
   if (lower.includes("fabrication")) return "fabrication";
