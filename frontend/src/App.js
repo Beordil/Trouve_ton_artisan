@@ -62,6 +62,23 @@ export default function App() {
             <Route path="/categorie/:slug" element={<CategoryPage />} />
             <Route path="/artisan/:id" element={<ArtisanDetailPage />} />
             <Route path="/recherche" element={<SearchResultsPage />} />
+
+            {/* Pages légales "vides" */}
+            <Route
+              path="/mentions-legales"
+              element={<LegalPage title="Mentions légales" />}
+            />
+            <Route
+              path="/donnees-personnelles"
+              element={<LegalPage title="Données personnelles" />}
+            />
+            <Route
+              path="/accessibilite"
+              element={<LegalPage title="Accessibilité" />}
+            />
+            <Route path="/cookies" element={<LegalPage title="Cookies" />} />
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -134,10 +151,10 @@ function SiteFooter() {
         </div>
 
         <div className="footer-links-centered">
-          <a href="#">Mentions légales</a>
-          <a href="#">Données personnelles</a>
-          <a href="#">Accessibilité</a>
-          <a href="#">Cookies</a>
+          <Link to="/mentions-legales">Mentions légales</Link>
+          <Link to="/donnees-personnelles">Données personnelles</Link>
+          <Link to="/accessibilite">Accessibilité</Link>
+          <Link to="/cookies">Cookies</Link>
         </div>
       </div>
     </footer>
@@ -147,14 +164,54 @@ function SiteFooter() {
 /* ========= PAGE ACCUEIL ========= */
 
 function Home() {
-  const [artisans, setArtisans] = useState([]);
+  const navigate = useNavigate();
+
+  // tous les artisans (pour la droite + les menus déroulants)
+  const [allArtisans, setAllArtisans] = useState([]);
+  // artisans du mois (colonne de droite)
+  const [featuredArtisans, setFeaturedArtisans] = useState([]);
+
+  // états des menus déroulants
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
+  const [selectedArtisanId, setSelectedArtisanId] = useState("");
 
   useEffect(() => {
     fetch("http://localhost:3001/artisans")
       .then((res) => res.json())
-      .then((data) => setArtisans(data.slice(0, 3)))
+      .then((data) => {
+        setAllArtisans(data);
+        setFeaturedArtisans(data.slice(0, 3));
+      })
       .catch((err) => console.error(err));
   }, []);
+
+  // liste des catégories à afficher dans le select
+  const categoryOptions = Object.entries(CATEGORY_CONFIG).map(
+    ([slug, cfg]) => ({
+      slug,
+      label: cfg.label,
+    })
+  );
+
+  // artisans filtrés par catégorie sélectionnée
+  const artisansForSelectedCategory = allArtisans.filter(
+    (a) => slugFromCategorie(a.categorie) === selectedCategorySlug
+  );
+
+  const handleCategoryChange = (e) => {
+    const slug = e.target.value;
+    setSelectedCategorySlug(slug);
+    setSelectedArtisanId(""); // on reset l’artisan quand la catégorie change
+  };
+
+  const handleArtisanChange = (e) => {
+    setSelectedArtisanId(e.target.value);
+  };
+
+  const handleGoToArtisan = () => {
+    if (!selectedArtisanId) return;
+    navigate(`/artisan/${selectedArtisanId}`);
+  };
 
   return (
     <section className="home-section">
@@ -175,25 +232,76 @@ function Home() {
             <h2>Comment trouver mon artisan ?</h2>
 
             <div className="steps">
+              {/* Étape 1 */}
               <div>
                 <span>1</span>
                 <div>
                   <strong>Choisir la catégorie d’artisanat</strong>
                   <p>Sélectionnez la catégorie dans le menu.</p>
+
+                  <div className="steps-controls">
+                    <select
+                      className="steps-select"
+                      value={selectedCategorySlug}
+                      onChange={handleCategoryChange}
+                    >
+                      <option value="">Choisir une catégorie…</option>
+                      {categoryOptions.map((c) => (
+                        <option key={c.slug} value={c.slug}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              {/* Étape 2 */}
               <div>
                 <span>2</span>
                 <div>
                   <strong>Choisir un artisan</strong>
                   <p>Consultez les fiches, notes et localisations.</p>
+
+                  <div className="steps-controls">
+                    <select
+                      className="steps-select"
+                      value={selectedArtisanId}
+                      onChange={handleArtisanChange}
+                      disabled={!selectedCategorySlug}
+                    >
+                      <option value="">
+                        {selectedCategorySlug
+                          ? "Choisir un artisan…"
+                          : "Choisissez d’abord une catégorie"}
+                      </option>
+                      {artisansForSelectedCategory.map((a) => (
+                        <option key={a.id_artisan} value={a.id_artisan}>
+                          {a.nom} – {a.localisation}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              {/* Étape 3 */}
               <div>
                 <span>3</span>
                 <div>
                   <strong>Le contacter</strong>
                   <p>Utilisez le formulaire de contact.</p>
+
+                  <div className="steps-controls">
+                    <button
+                      type="button"
+                      className="steps-button"
+                      onClick={handleGoToArtisan}
+                      disabled={!selectedArtisanId}
+                    >
+                      Contacter cet artisan
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -203,7 +311,7 @@ function Home() {
           <div className="home-right">
             <h2>Les artisans du mois</h2>
 
-            {artisans.map((a) => (
+            {featuredArtisans.map((a) => (
               <div key={a.id_artisan} className="artisan-card">
                 <strong>{a.nom}</strong>
                 <p>{a.specialite}</p>
@@ -446,6 +554,12 @@ function ArtisanDetailPage() {
               <br />
               <strong>Localisation :</strong> {artisan.localisation}
               <br />
+              {artisan.email_contact && (
+                <>
+                  <strong>Email :</strong> {artisan.email_contact}
+                  <br />
+                </>
+              )}
               {artisan.note && (
                 <>
                   <strong>Note :</strong> {artisan.note} / 5{" "}
@@ -455,7 +569,9 @@ function ArtisanDetailPage() {
             </p>
 
             {artisan.description && (
-              <p className="artisan-info-description">{artisan.description}</p>
+              <p className="artisan-info-description">
+                {artisan.description}
+              </p>
             )}
 
             {artisan.site_web && (
@@ -671,6 +787,26 @@ function slugFromCategorie(cat) {
   if (lower.includes("alimentation")) return "alimentation";
   if (lower.includes("fabrication")) return "fabrication";
   return "batiment";
+}
+
+/* ========= PAGE LEGALE GENERIQUE ========= */
+
+function LegalPage({ title }) {
+  return (
+    <section className="category-section">
+      <div className="category-wrapper">
+        <h1 className="category-title">
+          <span className="category-title-line" />
+          <span className="category-title-text">{title}</span>
+          <span className="category-title-line" />
+        </h1>
+        <p className="category-subtitle">
+          Page en construction – ce contenu sera fourni ultérieurement par un
+          cabinet spécialisé.
+        </p>
+      </div>
+    </section>
+  );
 }
 
 /* ========= 404 ========= */
